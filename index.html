@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Othello — Classic Reversi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="brand">
+        <div class="brand-discs" aria-hidden="true">
+          <span class="mini-disc black"></span>
+          <span class="mini-disc white"></span>
+        </div>
+        <div>
+          <h1>Othello</h1>
+          <p class="subtitle">Classic 8×8 Strategy</p>
+        </div>
+      </div>
+
+      <div class="top-toggles" role="group" aria-label="Game preferences">
+        <button id="toggle-hints" class="icon-toggle active" type="button" aria-pressed="true" title="Show or hide legal move hints">
+          <span class="toggle-dot" aria-hidden="true"></span>
+          <span>Hints</span>
+        </button>
+        <button id="toggle-sound" class="icon-toggle active" type="button" aria-pressed="true" title="Toggle sound effects">
+          <span class="toggle-icon" aria-hidden="true">🔊</span>
+          <span>Sound</span>
+        </button>
+        <button id="toggle-animations" class="icon-toggle active" type="button" aria-pressed="true" title="Toggle 3D flip animations">
+          <span class="toggle-icon" aria-hidden="true">✨</span>
+          <span>Animations</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <!-- Left / Top Control & Score Panel -->
+      <aside class="panel controls-panel" aria-label="Scoreboard and controls">
+        <section class="scoreboard" aria-label="Current score">
+          <div id="card-black" class="score-card active-turn" data-player="1">
+            <div class="score-player">
+              <span class="score-disc black" aria-hidden="true"></span>
+              <div class="score-meta">
+                <span class="player-name" id="label-black">Black (You)</span>
+                <span class="turn-badge" id="badge-black">Your Turn</span>
+              </div>
+            </div>
+            <span class="score-value" id="score-black">2</span>
+          </div>
+
+          <div id="card-white" class="score-card" data-player="2">
+            <div class="score-player">
+              <span class="score-disc white" aria-hidden="true"></span>
+              <div class="score-meta">
+                <span class="player-name" id="label-white">White (AI)</span>
+                <span class="turn-badge" id="badge-white">Waiting</span>
+              </div>
+            </div>
+            <span class="score-value" id="score-white">2</span>
+          </div>
+        </section>
+
+        <div id="status-banner" class="status-banner" role="status" aria-live="polite">
+          Black moves first. Select a highlighted square.
+        </div>
+
+        <section class="settings-card" aria-label="Game mode and difficulty">
+          <div class="field-group">
+            <label for="mode-select">Game Mode</label>
+            <select id="mode-select">
+              <option value="ai">Solo vs. AI</option>
+              <option value="friend">Play with Friend (2P)</option>
+            </select>
+          </div>
+
+          <div class="field-group" id="difficulty-group">
+            <label for="difficulty-select">AI Difficulty</label>
+            <select id="difficulty-select">
+              <option value="easy">Easy (Random)</option>
+              <option value="medium" selected>Medium (Positional)</option>
+              <option value="hard">Hard (Minimax α-β)</option>
+            </select>
+          </div>
+
+          <div class="field-group" id="color-group">
+            <label for="color-select">Play As</label>
+            <select id="color-select">
+              <option value="1" selected>Black (Moves First)</option>
+              <option value="2">White (Moves Second)</option>
+            </select>
+          </div>
+
+          <div class="action-buttons">
+            <button id="btn-undo" class="btn btn-secondary" type="button" disabled>
+              ↩ Undo Move
+            </button>
+            <button id="btn-new-game" class="btn btn-primary" type="button">
+              ↻ New Game
+            </button>
+          </div>
+        </section>
+
+        <section class="stats-card" aria-label="Saved statistics">
+          <div class="section-header">
+            <h2>Statistics</h2>
+            <button id="btn-reset-stats" class="link-btn" type="button">Reset</button>
+          </div>
+          <div class="stats-grid" id="stats-grid">
+            <div class="stat-item">
+              <span class="stat-num" id="stat-wins">0</span>
+              <span class="stat-label">AI Wins</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-num" id="stat-losses">0</span>
+              <span class="stat-label">AI Losses</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-num" id="stat-ties">0</span>
+              <span class="stat-label">Ties</span>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <!-- Center 8x8 Felt Board -->
+      <section class="board-stage" aria-label="Othello game board">
+        <div class="board-frame">
+          <div class="coords-top" aria-hidden="true">
+            <span>A</span><span>B</span><span>C</span><span>D</span>
+            <span>E</span><span>F</span><span>G</span><span>H</span>
+          </div>
+          <div class="board-middle">
+            <div class="coords-left" aria-hidden="true">
+              <span>1</span><span>2</span><span>3</span><span>4</span>
+              <span>5</span><span>6</span><span>7</span><span>8</span>
+            </div>
+            <div
+              id="board"
+              class="board"
+              role="grid"
+              aria-label="8 by 8 Othello board"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right / Bottom Move History -->
+      <aside class="panel history-panel" aria-label="Move history">
+        <div class="section-header">
+          <h2>Move Log</h2>
+          <span class="move-count" id="move-count">0 moves</span>
+        </div>
+        <ol id="move-history" class="move-history" aria-live="polite">
+          <li class="history-empty">No moves played yet.</li>
+        </ol>
+      </aside>
+    </main>
+  </div>
+
+  <!-- End-of-Game Modal -->
+  <dialog id="game-over-modal" class="modal" aria-labelledby="modal-title">
+    <div class="modal-content">
+      <div class="modal-trophy" id="modal-trophy" aria-hidden="true">🏆</div>
+      <h2 id="modal-title">Game Over</h2>
+      <p id="modal-subtitle" class="modal-subtitle">Black wins the match!</p>
+
+      <div class="modal-scores">
+        <div class="modal-score-box">
+          <span class="score-disc black" aria-hidden="true"></span>
+          <span class="modal-score-label">Black</span>
+          <strong id="modal-black-score">0</strong>
+        </div>
+        <div class="modal-vs">vs</div>
+        <div class="modal-score-box">
+          <span class="score-disc white" aria-hidden="true"></span>
+          <span class="modal-score-label">White</span>
+          <strong id="modal-white-score">0</strong>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="modal-play-again" class="btn btn-primary" type="button">Play Again</button>
+        <button id="modal-close" class="btn btn-secondary" type="button">Inspect Board</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="game.js"></script>
+</body>
+</html>
+
